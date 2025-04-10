@@ -1,53 +1,73 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
+import cors from 'cors';
 
 const prisma = new PrismaClient();
 
 const app = express();
 app.use(express.json());
+app.use(cors('http://127.0.0.1:5555'));
 
-// Criar dados / usuários / Fazer Requisições zxs
-app.post('/users', async (req, res) => {
-  await prisma.user.create({
-    data: {
-      name: req.body.name, // Corrigido de 'nome' para 'name'
-      email: req.body.email,
-      age: req.body.age,
-    },
-  });
-  res.status(201).json(req.body);
+ app.post('/users', async (req, res) => {
+    
+    await prisma.user.create({
+        data: {
+            name: req.body.name,
+            email: req.body.email,
+            age: req.body.age
+        }
+    })
+
+    res.status(201).json(req.body);
 });
 
-// Mostrar dados cadastrados / Fazer requisição GET
-app.get('/users', async (req, res) => {
-  const users = await prisma.user.findMany();
-  res.status(200).json(users); // Corrigido 'jason' para 'json'
+ app.get('/users', async (req, res) => {
+    
+    let users = [];
+
+    if (req.query) { 
+        users = await prisma.user.findMany({
+            where: {
+                name: req.query.name,
+                email: req.query.email,
+                age: req.query.age
+            }
+        })
+        return res.status(200).json(users);
+    }else{
+
+        const users = await prisma.user.findMany();
+        res.status(200).json(users);
+    }
+
 });
 
-// Atualizar dados / usuários / Fazer Requisições PUT
-app.put('/users/:id', async (req, res) => { // Corrigido para usar ':id' na URL
-  await prisma.user.update({
-    where: {
-      id: req.params.id, // Corrigido para pegar o ID da URL
-    },
-    data: {
-      name: req.body.name,
-      email: req.body.email,
-      age: req.body.age,
-    },
-  });
-  res.status(200).json(req.body); // Corrigido para usar 200 para PUT
+app.put('/users/:id', async (req, res) => {
+    
+    await prisma.user.update({
+        where: {
+            id: req.params.id
+        },
+        data: {
+            name: req.body.name,
+            email: req.body.email,
+            age: req.body.age
+        }
+    })
+
+    res.status(201).json(req.body);
 });
 
-// Deletar dados / usuários / Fazer Requisições DELETE
-app.delete('/users/:id', async (req, res) => { // Corrigido para usar ':id' na URL
-  await prisma.user.delete({ // Corrigido de 'update' para 'delete'
-    where: {
-      id: req.params.id, // Corrigido para pegar o ID da URL
-    },
-  });
-  res.status(200).json({ message: 'Usuário Deletado com sucesso!' }); // Corrigido status code para 200
+app.delete('/users/:id', async (req, res) => {
+    
+    await prisma.user.delete({
+        where: {
+            id: req.params.id
+        }
+    })
+
+    res.status(200).json({message: "Usuário deletado com sucesso"});
 });
 
 // Iniciar o servidor
-app.listen(8080);
+app.listen(5555);
